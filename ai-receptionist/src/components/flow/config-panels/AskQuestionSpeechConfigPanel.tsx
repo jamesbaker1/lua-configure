@@ -114,7 +114,7 @@ export const AskQuestionSpeechConfigPanel: React.FC<AskQuestionSpeechConfigPanel
       </Button>
 
       <div>
-        <Label htmlFor="askspeech-fallbacklabel">'Fallback/No Match' Handle Label</Label>
+        <Label htmlFor="askspeech-fallbacklabel">Fallback/No Match Handle Label</Label>
         <Input id="askspeech-fallbacklabel" name="fallbackHandleLabel" value={nodeData.fallbackHandleLabel || ''} onChange={handleInputChange} placeholder="E.g., Could not understand" />
       </div>
 

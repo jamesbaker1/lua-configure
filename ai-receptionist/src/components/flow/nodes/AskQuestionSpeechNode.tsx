@@ -2,7 +2,7 @@
 
 import { Handle, Position, NodeProps, Node } from '@xyflow/react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { MicIcon, AlertTriangleIcon } from 'lucide-react';
+import { MicIcon } from 'lucide-react';
 
 export type SpeechIntentBranch = {
   id: string; // e.g., 'handle-intent-sales'

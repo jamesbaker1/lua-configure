@@ -8,7 +8,7 @@ export type ConditionBranch = {
   id: string; // Handle ID, e.g., 'handle-condition-1'
   variable: string;
   operator: string; // e.g., '==', '>', 'contains'
-  value: any;
+  value: string | number | boolean;
   label: string; // e.g., "If CallerID is '5551234'"
 };
 

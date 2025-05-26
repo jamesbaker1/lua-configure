@@ -2,19 +2,32 @@
 
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import {
-  addEdge, useEdgesState, useNodesState, 
-  Connection, Edge, Node, Position, BackgroundVariant, NodeTypes, 
-  useReactFlow, ReactFlowProvider,
-  useOnSelectionChange, useNodesInitialized,
+  ReactFlow,
+  addEdge,
+  useNodesState,
+  useEdgesState,
+  Connection,
+  Edge,
+  Node,
+  Position,
+  BackgroundVariant,
+  NodeTypes,
+  ReactFlowProvider,
+  useOnSelectionChange,
+  useNodesInitialized,
+  ReactFlowInstance,
+  Controls,
+  MiniMap,
+  Background,
+  Panel,
+  ConnectionLineType
 } from '@xyflow/react';
-import { ReactFlow, Controls, MiniMap, Background, Panel, ConnectionLineType } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { DraggableNode } from '@/components/flow/DraggableNode';
 import {
     PlayCircleIcon, MessageSquareTextIcon, KeyIcon, MicIcon, GitForkIcon, 
     PhoneForwardedIcon, VoicemailIcon, ListPlusIcon, FileTextIcon, PhoneOffIcon
@@ -34,25 +47,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { callFlowTemplates, CallFlowTemplate } from "@/lib/flow-templates";
+import { callFlowTemplates } from "@/lib/flow-templates";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { HelpCircleIcon } from 'lucide-react';
 
 // Import all custom nodes and their data types
 import { StartCallNode, StartCallNodeData } from '@/components/flow/nodes/StartCallNode';
@@ -96,7 +97,7 @@ export type AllNodeData = (StartCallNodeData | PlayMessageNodeData | AskQuestion
                    RecordVoicemailNodeData | ClioCreateTaskNodeData | ClioLogCallNodeData | 
                    EndCallNodeData | { label: string }) & { isValid?: boolean };
 
-const initialNodes: Node<AllNodeData>[] = [
+const initialNodes: Node<AllNodeData, string>[] = [
   {
     id: '1',
     type: 'startCall',
@@ -284,34 +285,35 @@ const getLayoutedElements = (nodes: Node<AllNodeData>[], edges: Edge[], directio
   return { nodes: layoutedNodes, edges };
 };
 
-function ConfigureFlow() {
+const ConfigureFlow = () => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const { screenToFlowPosition, addNodes, fitView, deleteElements, getNodes, getEdges } = useReactFlow();
-  const nodesInitialized = useNodesInitialized();
+
   const [selectedNode, setSelectedNode] = useState<Node<AllNodeData> | null>(null);
-  const [contextMenu, setContextMenu] = useState<{ mouseX: number, mouseY: number, nodeId: string } | null>(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<Node<AllNodeData, string>, Edge> | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ mouseX: number; mouseY: number; nodeId: string } | null>(null);
   const [initialLayoutDone, setInitialLayoutDone] = useState(false);
-  const [showHelpDialog, setShowHelpDialog] = useState(false);
+
+  const nodesInitialized = useNodesInitialized();
 
   useEffect(() => {
-    if (nodesInitialized && !initialLayoutDone) {
+    if (nodesInitialized && !initialLayoutDone && reactFlowInstance) { // Added reactFlowInstance check here
       console.log("Nodes initialized, applying smart initial layout.");
-      const currentNodes = getNodes() as Node<AllNodeData>[];
-      const currentEdges = getEdges();
+      const currentNodes = reactFlowInstance.getNodes(); // Using instance's getNodes
+      const currentEdges = reactFlowInstance.getEdges(); // Using instance's getEdges
 
       const { nodes: layoutedNodes, edges: newEdges } = getLayoutedElements(currentNodes, currentEdges, 'TB');
       setNodes(layoutedNodes);
       setEdges(newEdges);
       setInitialLayoutDone(true);
       setTimeout(() => {
-        fitView();
+        reactFlowInstance?.fitView();
         console.log('Fit view after nodes initialized');
         toast("Flow layout applied automatically.");
       }, 100);
     }
-  }, [nodesInitialized, initialLayoutDone, getNodes, getEdges, setNodes, setEdges, fitView]);
+  }, [nodesInitialized, initialLayoutDone, reactFlowInstance, setNodes, setEdges]); // Removed getNodes, edges from deps, added reactFlowInstance, setNodes, setEdges
 
   useOnSelectionChange({
     onChange: ({ nodes: selectedNodes }) => {
@@ -341,7 +343,7 @@ function ConfigureFlow() {
   };
 
   const onConnect = useCallback(
-    (params: Edge | Connection) => setEdges((els) => addEdge(params, els)),
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 
@@ -353,12 +355,12 @@ function ConfigureFlow() {
   const onDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
       event.preventDefault();
-      if (!reactFlowWrapper.current) return;
+      if (!reactFlowWrapper.current || !reactFlowInstance) return;
 
       const type = event.dataTransfer.getData('application/reactflow-nodetype');
       if (typeof type === 'undefined' || !type) return;
       
-      const position = screenToFlowPosition({
+      const position = reactFlowInstance.screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
       });
@@ -387,28 +389,22 @@ function ConfigureFlow() {
       const { nodes: layoutedNodesWithNew } = getLayoutedElements(tempNodes, edges, 'TB');
       setNodes(layoutedNodesWithNew);
     },
-    [screenToFlowPosition, addNodes, nodes, edges, setNodes, setEdges, getNodes]
+    [reactFlowInstance, nodes, edges, setNodes]
   );
 
-  const onLayout = useCallback((direction: string) => {
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges, direction);
-    setNodes([...layoutedNodes]);
-    setEdges([...layoutedEdges]);
-    setTimeout(() => {
-        fitView();
-        toast("Layout Updated", {
-          description: `Flow has been re-arranged to ${direction === 'TB' ? 'Top-to-Bottom' : 'Left-to-Right'} layout.`,
-        });
-    }, 100);
-  }, [nodes, edges, setNodes, setEdges, fitView]);
-
-  const handleSaveFlow = () => {
-    // TODO: Implement actual saving logic (e.g., API call)
-    console.log("Saving flow:", { nodes, edges });
-    toast.success("Flow saved successfully!", {
-      description: "Your changes have been persisted.",
-    });
-  };
+  const onLayout = useCallback(
+    (direction: string) => {
+      const layouted = getLayoutedElements(nodes, edges, direction);
+      setNodes([...layouted.nodes]);
+      setEdges([...layouted.edges]);
+      setSelectedNode(null);
+      setTimeout(() => {
+        reactFlowInstance?.fitView();
+        toast.info("Flow layout applied automatically.");
+      }, 100);
+    },
+    [nodes, edges, setNodes, setEdges, reactFlowInstance]
+  );
 
   const handleLoadTemplate = (templateId: string) => {
     const template = callFlowTemplates.find(t => t.id === templateId);
@@ -422,7 +418,7 @@ function ConfigureFlow() {
       setEdges(layoutedEdges);
       setSelectedNode(null); // Deselect any currently selected node
       setTimeout(() => {
-        fitView();
+        reactFlowInstance?.fitView();
         toast.info("Template Loaded", {
           description: `Template "${template.name}" has been loaded and arranged.`,
         });
@@ -572,7 +568,7 @@ function ConfigureFlow() {
       // Add more validation for other node types here for duplication
       newNode.data.isValid = isValid;
 
-      addNodes(newNode);
+      setNodes((nds) => [...nds, newNode]);
       handleCloseContextMenu();
 
       toast.info(`Node ${originalNode.data.label} duplicated as ${newNode.data.label}.`);
@@ -630,6 +626,7 @@ function ConfigureFlow() {
               onDragOver={onDragOver}
               nodeTypes={nodeTypes}
               fitView
+              onInit={setReactFlowInstance}
               connectionLineType={ConnectionLineType.SmoothStep}
               className="bg-background"
               onNodeContextMenu={onNodeContextMenu}

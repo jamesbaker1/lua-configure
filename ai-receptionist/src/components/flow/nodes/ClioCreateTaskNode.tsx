@@ -2,7 +2,7 @@
 
 import { Handle, Position, NodeProps, Node } from '@xyflow/react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ListPlusIcon, CheckSquareIcon } from 'lucide-react'; // Using ListPlusIcon for Clio + Task
+import { ListPlusIcon } from 'lucide-react'; // Removed CheckSquareIcon
 
 // Mock Clio logo (replace with actual SVG or image component later)
 const ClioLogo = () => <span className="font-bold text-blue-600 text-xs mr-1">Clio</span>;

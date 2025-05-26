@@ -30,7 +30,7 @@ export const ConditionalBranchConfigPanel: React.FC<ConditionalBranchConfigPanel
     onDataChange({ [event.target.name]: event.target.value });
   };
 
-  const handleConditionChange = (index: number, field: keyof ConditionBranch, value: any) => {
+  const handleConditionChange = (index: number, field: keyof ConditionBranch, value: string) => {
     const updatedConditions = internalConditions.map((cond, i) => 
       i === index ? { ...cond, [field]: value } : cond
     );
@@ -89,7 +89,7 @@ export const ConditionalBranchConfigPanel: React.FC<ConditionalBranchConfigPanel
             </div>
             <div>
               <Label htmlFor={`cond-value-${index}`} className="text-xs">Value</Label>
-              <Input id={`cond-value-${index}`} value={condition.value} onChange={(e) => handleConditionChange(index, 'value', e.target.value)} placeholder="E.g., '5551234' or 100" />
+              <Input id={`cond-value-${index}`} value={String(condition.value)} onChange={(e) => handleConditionChange(index, 'value', e.target.value)} placeholder="E.g., &apos;5551234&apos; or 100" />
             </div>
           </div>
           <div>
@@ -103,7 +103,7 @@ export const ConditionalBranchConfigPanel: React.FC<ConditionalBranchConfigPanel
       </Button>
 
       <div>
-        <Label htmlFor="condbranch-elselabel">'Else' Handle Label</Label>
+        <Label htmlFor="condbranch-elselabel">Else Handle Label</Label>
         <Input id="condbranch-elselabel" name="elseHandleLabel" value={nodeData.elseHandleLabel || ''} onChange={handleInputChange} placeholder="E.g., Else / Default" />
       </div>
 

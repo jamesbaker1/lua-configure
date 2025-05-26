@@ -2,7 +2,7 @@
 
 import { Handle, Position, NodeProps, Node } from '@xyflow/react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { KeyIcon, AlertTriangleIcon } from 'lucide-react';
+import { KeyIcon } from 'lucide-react';
 
 export type DtmfBranch = {
   id: string; // e.g., 'handle-1', 'handle-2'

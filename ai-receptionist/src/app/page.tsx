@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import Image from "next/image";
+// import Image from "next/image"; // Removed unused import
 
 export default function HomePage() {
   redirect('/configure');

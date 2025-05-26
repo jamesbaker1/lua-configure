@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Trash2Icon, PlusCircleIcon } from 'lucide-react';
 import { AskQuestionDtmfNodeData, DtmfBranch } from '@/components/flow/nodes/AskQuestionDtmfNode';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // For branch cards
+import { Card } from '@/components/ui/card'; // Removed CardContent, CardHeader, CardTitle
 
 interface AskQuestionDtmfConfigPanelProps {
   nodeData: AskQuestionDtmfNodeData;
@@ -101,7 +101,7 @@ export const AskQuestionDtmfConfigPanel: React.FC<AskQuestionDtmfConfigPanelProp
             </div>
             <div>
               <Label htmlFor={`branch-label-${index}`} className="text-xs">Handle Label</Label>
-              <Input id={`branch-label-${index}`} value={branch.label} onChange={(e) => handleBranchChange(index, 'label', e.target.value)} placeholder="E.g., On '1' (Sales)" />
+              <Input id={`branch-label-${index}`} value={branch.label} onChange={(e) => handleBranchChange(index, 'label', e.target.value)} placeholder="E.g., On &apos;1&apos; (Sales)" />
             </div>
           </div>
         </Card>
@@ -111,7 +111,7 @@ export const AskQuestionDtmfConfigPanel: React.FC<AskQuestionDtmfConfigPanelProp
       </Button>
 
       <div>
-        <Label htmlFor="askdtmf-nomatchlabel">'No Match/Timeout' Handle Label</Label>
+        <Label htmlFor="askdtmf-nomatchlabel">No Match/Timeout Handle Label</Label>
         <Input id="askdtmf-nomatchlabel" name="noMatchHandleLabel" value={nodeData.noMatchHandleLabel || ''} onChange={handleInputChange} placeholder="E.g., Invalid input / Timeout" />
       </div>
 
